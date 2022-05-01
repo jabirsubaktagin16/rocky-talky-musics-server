@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 const port = process.env.PORT || 5000;
 require("dotenv").config();
@@ -19,7 +19,25 @@ const client = new MongoClient(uri, {
 const run = async () => {
   try {
     await client.connect();
-    const collectionName = client.db("rockyTalkyMusic").collection("product");
+    const productCollection = client
+      .db("rockyTalkyMusic")
+      .collection("product");
+
+    // GET All Items
+    app.get("/products", async (req, res) => {
+      const query = {};
+      const cursor = productCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    // GET Details from a single product
+    app.get("/inventory/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const productDetails = await productCollection.findOne(query);
+      res.send(productDetails);
+    });
   } finally {
     // await client.close();
   }
