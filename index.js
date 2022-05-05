@@ -23,6 +23,15 @@ const run = async () => {
       .db("rockyTalkyMusic")
       .collection("product");
 
+    // AUTH
+    app.post("/signin", async (req, res) => {
+      const user = req.body;
+      const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "1d",
+      });
+      res.send({ accessToken });
+    });
+
     // GET All Items
     app.get("/products", async (req, res) => {
       const query = {};
@@ -52,6 +61,40 @@ const run = async () => {
       const query = { _id: ObjectId(id) };
       const result = await productCollection.deleteOne(query);
       res.send(result);
+    });
+
+    // Stock Update
+    app.put("/inventory/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedStock = req.body;
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updatedDoc = {
+        $set: {
+          name: updatedStock.name,
+          price: updatedStock.price,
+          image: updatedStock.image,
+          quantity: updatedStock.quantity,
+          category: updatedStock.category,
+          sold: updatedStock.sold,
+          email: updatedStock.email,
+          description: updatedStock.description,
+        },
+      };
+      const result = await productCollection.updateOne(
+        filter,
+        updatedDoc,
+        options
+      );
+      res.send(result);
+    });
+
+    app.get("/inventory", async (req, res) => {
+      const email = req.query.email;
+      const query = { email: email };
+      const cursor = productCollection.find(query);
+      const myItems = await cursor.toArray();
+      res.send(myItems);
     });
   } finally {
     // await client.close();
