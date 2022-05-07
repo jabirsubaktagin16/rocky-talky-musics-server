@@ -37,6 +37,9 @@ const run = async () => {
     const productCollection = client
       .db("rockyTalkyMusic")
       .collection("product");
+    const supplierCollection = client
+      .db("rockyTalkyMusic")
+      .collection("supplier");
 
     // AUTH
     app.post("/signin", async (req, res) => {
@@ -45,6 +48,22 @@ const run = async () => {
         expiresIn: "1d",
       });
       res.send({ accessToken });
+    });
+
+    // GET All Suppliers
+    app.get("/suppliers", async (req, res) => {
+      const query = {};
+      const cursor = supplierCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    // GET Details from a single product
+    app.get("/supplier/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const productDetails = await supplierCollection.findOne(query);
+      res.send(productDetails);
     });
 
     // GET All Items
